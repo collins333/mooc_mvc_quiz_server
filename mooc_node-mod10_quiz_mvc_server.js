@@ -53,18 +53,21 @@ const index = (quizzes) => `<!-- HTML view -->
 <html>
     <head><title>MVC Example</title><meta charset="utf-8"></head> 
     <body> 
-        <h1>MVC: Quizzes</h1>`
+        <h1>MVC: Quizzes</h1>
+        <table>`
 + quizzes.reduce(
     (ac, quiz) => ac += 
-`       <a href="/quizzes/${quiz.id}/play">${quiz.question}</a>
-        <a href="/quizzes/${quiz.id}/edit"><button>Edit</button></a>
-        <a href="/quizzes/${quiz.id}?_method=DELETE"
+`     <tr>
+        <td><a href="/quizzes/${quiz.id}/play">${quiz.question}</a></td>
+        <td><a href="/quizzes/${quiz.id}/edit"><button>Edit</button></a></td>
+        <td><a href="/quizzes/${quiz.id}?_method=DELETE"
            onClick="return confirm('Delete: ${quiz.question}')">
-           <button>Delete</button></a>
-        <br>\n`, 
+           <button>Delete</button></a></td>
+      </tr>`, 
     ""
 )
-+ `     <p/>
++ `     </table>
+        <p/>
         <a href="/quizzes/new"><button>New Quiz</button></a>
     </body>
 </html>`;
@@ -128,7 +131,7 @@ const playController = (req, res, next) => {
     let id = Number(req.params.id);
     let response = req.query.response || "";
 
-    quizzes.findById(id)
+    quizzes.findByPk(id)
     .then((quiz) => res.send(play(id, quiz.question, response)))
     .catch((error) => `A DB Error has occurred:\n${error}`);
  };
@@ -138,7 +141,7 @@ const checkController = (req, res, next) => {
     let response = req.query.response, msg;
     let id = Number(req.params.id);
 
-    quizzes.findById(id)
+    quizzes.findByPk(id)
     .then((quiz) => {
         msg = (quiz.answer===response) ?
               `Yes, "${response}" is the ${quiz.question}` 
