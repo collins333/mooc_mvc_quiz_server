@@ -33,10 +33,10 @@ sequelize.sync() // Syncronize DB and seed if needed
     if (count===0) {
         return ( 
             quizzes.bulkCreate([
-                { id: 1, question: "Capital of Italy",    answer: "Rome" },
-                { id: 2, question: "Capital of France",   answer: "Paris" },
-                { id: 3, question: "Capital of Spain",    answer: "Madrid" },
-                { id: 4, question: "Capital of Portugal", answer: "Lisbon" }
+                { id: 1, question: "Capital de Italia",    answer: "Roma" },
+                { id: 2, question: "Capital de Francia",   answer: "París" },
+                { id: 3, question: "Capital de Epaña",    answer: "Madrid" },
+                { id: 4, question: "Capital de Portugal", answer: "Lisboa" }
             ])
             .then( c => console.log(`  DB created with ${c.length} elems`))
         )
@@ -99,7 +99,7 @@ const check = (id, msg, response) => `<!-- HTML view -->
     </body>
 </html>`;
 
-const quizForm =(msg, method, action, question, answer) => `<!-- HTML view -->
+const quizForm =(msg, value, method, action, question, answer) => `<!-- HTML view -->
 <html>
     <head><title>MVC Example</title><meta charset="utf-8"></head> 
     <body>
@@ -108,7 +108,7 @@ const quizForm =(msg, method, action, question, answer) => `<!-- HTML view -->
             ${msg}: <p>
             <input  type="text"  name="question" value="${question}" placeholder="Question" />
             <input  type="text"  name="answer"   value="${answer}"   placeholder="Answer" />
-            <input  type="submit" value="Create"/> <br>
+            <input  type="submit" value="${value}"/> <br>
         </form>
         </p>
         <a href="/quizzes"><button>Go back</button></a>
@@ -143,7 +143,7 @@ const checkController = (req, res, next) => {
 
     quizzes.findByPk(id)
     .then((quiz) => {
-        msg = (quiz.answer===response) ?
+        msg = (quiz.answer.toLowerCase()===response.toLowerCase().trim()) ?
               `Yes, "${response}" is the ${quiz.question}` 
             : `No, "${response}" is not the ${quiz.question}`;
         return res.send(check(id, msg, response));
@@ -153,20 +153,30 @@ const checkController = (req, res, next) => {
 
 //  GET /quizzes/1/edit
 const editController = (req, res, next) => {
-
-     // .... introducir código
+  let id = Number(req.params.id)
+  quizzes.findByPk(id)
+  .then(quiz => {
+    res.send(quizForm('Edit Quiz', 'Edit', 'post', `/quizzes/${id}?_method=PUT`, `${quiz.question}`, `${quiz.answer}`))   
+  })
+  .catch((error) => `A DB Error has occurred:\n${error}`)
 };
 
 //  PUT /quizzes/1
 const updateController = (req, res, next) => {
-
-     // .... introducir código
+  let id = Number(req.params.id)
+  let {question, answer} = req.body
+  quizzes.findByPk(id)
+  .then(quiz => {
+    quiz.update({question, answer})
+    res.redirect('/')
+  })
+  .catch(error => `Quiz not update:\n${error}`)
 };
 
 // GET /quizzes/new
 const newController = (req, res, next) => {
 
-    res.send(quizForm("Create new Quiz", "post", "/quizzes", "", ""));
+    res.send(quizForm("Create new Quiz", 'Create', "post", "/quizzes", "", ""));
  };
 
 // POST /quizzes
@@ -181,8 +191,13 @@ const createController = (req, res, next) => {
 
 // DELETE /quizzes/1
 const destroyController = (req, res, next) => {
-
-     // .... introducir código
+  let id = Number(req.params.id)
+  quizzes.findByPk(id)
+  .then(quiz => {
+    quiz.destroy()
+    res.redirect('/')
+  })
+  .catch((error) => `Quiz not deleted:\n${error}`)  
  };
 
 
@@ -194,6 +209,9 @@ app.get('/quizzes/:id/play',  playController);
 app.get('/quizzes/:id/check', checkController);
 app.get('/quizzes/new',       newController);
 app.post('/quizzes',          createController);
+app.get('/quizzes/:id/edit',  editController)
+app.put('/quizzes/:id',       updateController)
+app.delete('/quizzes/:id',    destroyController)
 
     // ..... instalar los MWs asociados a
     //   GET  /quizzes/:id/edit,   PUT  /quizzes/:id y  DELETE  /quizzes/:id
