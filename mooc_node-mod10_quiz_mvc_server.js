@@ -72,32 +72,75 @@ const index = (quizzes) => `<!-- HTML view -->
     </body>
 </html>`;
 
+// const play = (id, question, response) => `<!-- HTML view -->
+// <html>
+//     <head><title>MVC Example</title><meta charset="utf-8"></head> 
+//     <body>
+//         <h1>MVC: Quizzes</h1>
+//         <form   method="get"   action="/quizzes/${id}/check">
+//             ${question}: <p>
+//             <input type="text" name="response" value="${response}" placeholder="Answer" />
+//             <input type="submit" value="Check"/> <br>
+//         </form>
+//         </p>
+
+
+//         <a href="/quizzes"><button>Go back</button></a>
+//     </body>
+// </html>`;
+
 const play = (id, question, response) => `<!-- HTML view -->
 <html>
-    <head><title>MVC Example</title><meta charset="utf-8"></head> 
+    <head><title>MVC Example</title><meta charset="utf-8">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript">
+      $(function() {
+        $('#submit').on('click', () => {
+          $.ajax({
+            type: 'GET',
+            url: '/quizzes/${id}/check?response='+$('#name').val(),
+            success: (response) => {
+              $('#comprobar').html(response)
+            }
+          })
+        })
+      })
+    </script>
+    </head> 
     <body>
         <h1>MVC: Quizzes</h1>
-        <form   method="get"   action="/quizzes/${id}/check">
-            ${question}: <p>
-            <input type="text" name="response" value="${response}" placeholder="Answer" />
-            <input type="submit" value="Check"/> <br>
-        </form>
+          ${question}: <p>
+            <input type="text" id="name" name="response" value="${response}" placeholder="Answer" />
+            <input id="submit" type="submit" value="Check"/> <br>
         </p>
+        <div id="comprobar"></div>
+
         <a href="/quizzes"><button>Go back</button></a>
     </body>
 </html>`;
+
 
 const check = (id, msg, response) => `<!-- HTML view -->
 <html>
     <head><title>MVC Example</title><meta charset="utf-8"></head> 
     <body>
-        <h1>MVC: Quizzes</h1>
         <strong><div id="msg">${msg}</div></strong>
-        <p>
-        <a href="/quizzes"><button>Go back</button></a>
-        <a href="/quizzes/${id}/play?response=${response}"><button>Try again</button></a>
     </body>
 </html>`;
+
+
+// const check = (id, msg, response) => `<!-- HTML view -->
+// <html>
+//     <head><title>MVC Example</title><meta charset="utf-8"></head> 
+//     <body>
+//         <h1>MVC: Quizzes</h1>
+//         <strong><div id="msg">${msg}</div></strong>
+//         <p>
+//         <a href="/quizzes"><button>Go back</button></a>
+//         <a href="/quizzes/${id}/play?response=${response}"><button>Try again</button></a>
+//     </body>
+// </html>`;
+
 
 const quizForm =(msg, value, method, action, question, answer) => `<!-- HTML view -->
 <html>
@@ -120,8 +163,7 @@ const quizForm =(msg, value, method, action, question, answer) => `<!-- HTML vie
 
 // GET /, GET /quizzes
 const indexController = (req, res, next) => {
- 
-    quizzes.findAll()
+     quizzes.findAll()
     .then((quizzes) => res.send(index(quizzes)))
     .catch((error) => `DB Error:\n${error}`);
 }
