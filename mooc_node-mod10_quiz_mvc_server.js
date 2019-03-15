@@ -9,8 +9,30 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
    // Import MW supporting Method Override with express
 
-var methodOverride = require('method-override');
-app.use(methodOverride('_method'));
+const methodOverride = require('method-override')
+
+   function methodOverrideGET(key) {
+    key = key || "_method";
+    return function methodOverrideGET(req, res, next) {
+        if (req.originalMethod != req.method) {
+            // already overridden => do not override again
+            next();
+            return;
+        }
+ 
+        req.originalMethod = req.method;
+        if (req.query && key in req.query) {
+            req.method = req.query[key].toUpperCase();
+            delete req.query[key];
+        }
+        next();
+    };
+ };
+ 
+ 
+ app.use(methodOverride('_method'));
+ 
+ app.use(methodOverrideGET('_method'));
 
 
    // MODEL
@@ -72,22 +94,6 @@ const index = (quizzes) => `<!-- HTML view -->
     </body>
 </html>`;
 
-// const play = (id, question, response) => `<!-- HTML view -->
-// <html>
-//     <head><title>MVC Example</title><meta charset="utf-8"></head> 
-//     <body>
-//         <h1>MVC: Quizzes</h1>
-//         <form   method="get"   action="/quizzes/${id}/check">
-//             ${question}: <p>
-//             <input type="text" name="response" value="${response}" placeholder="Answer" />
-//             <input type="submit" value="Check"/> <br>
-//         </form>
-//         </p>
-
-
-//         <a href="/quizzes"><button>Go back</button></a>
-//     </body>
-// </html>`;
 
 const play = (id, question, response) => `<!-- HTML view -->
 <html>
@@ -113,7 +119,7 @@ const play = (id, question, response) => `<!-- HTML view -->
             <input type="text" id="name" name="response" value="${response}" placeholder="Answer" />
             <input id="submit" type="submit" value="Check"/> <br>
         </p>
-        <div id="comprobar"></div>
+        <div id="comprobar"></div><br>
 
         <a href="/quizzes"><button>Go back</button></a>
     </body>
@@ -127,19 +133,6 @@ const check = (id, msg, response) => `<!-- HTML view -->
         <strong><div id="msg">${msg}</div></strong>
     </body>
 </html>`;
-
-
-// const check = (id, msg, response) => `<!-- HTML view -->
-// <html>
-//     <head><title>MVC Example</title><meta charset="utf-8"></head> 
-//     <body>
-//         <h1>MVC: Quizzes</h1>
-//         <strong><div id="msg">${msg}</div></strong>
-//         <p>
-//         <a href="/quizzes"><button>Go back</button></a>
-//         <a href="/quizzes/${id}/play?response=${response}"><button>Try again</button></a>
-//     </body>
-// </html>`;
 
 
 const quizForm =(msg, value, method, action, question, answer) => `<!-- HTML view -->
@@ -266,5 +259,5 @@ app.all('*', (req, res) =>
 
    // Server started at port 8000
 
-app.listen(8000);
+app.listen(3000);
 
